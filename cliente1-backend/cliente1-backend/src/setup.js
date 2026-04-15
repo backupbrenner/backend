@@ -5,22 +5,21 @@ async function setupDatabase() {
 
   await db.query(`
     CREATE TABLE IF NOT EXISTS delivery.stores (
-  id SERIAL PRIMARY KEY,
-  slug VARCHAR(80) UNIQUE,
-  name VARCHAR(150) NOT NULL,
-  whatsapp VARCHAR(30),
-  address TEXT,
-  bairro VARCHAR(100),
-  referencia TEXT,
-  delivery_fee NUMERIC(10,2) DEFAULT 0,
-  is_open BOOLEAN DEFAULT true
-)
+      id SERIAL PRIMARY KEY,
+      slug VARCHAR(80) UNIQUE,
+      name VARCHAR(150) NOT NULL,
+      whatsapp VARCHAR(30),
+      address TEXT,
+      bairro VARCHAR(100),
+      referencia TEXT,
+      delivery_fee NUMERIC(10,2) DEFAULT 0,
+      is_open BOOLEAN DEFAULT true
+    )
   `);
 
   await db.query(`
     CREATE TABLE IF NOT EXISTS delivery.menu_items (
       id SERIAL PRIMARY KEY,
-      store_id INTEGER REFERENCES delivery.stores(id) ON DELETE CASCADE,
       code VARCHAR(60) UNIQUE NOT NULL,
       name VARCHAR(150) NOT NULL,
       price NUMERIC(10,2) NOT NULL,
@@ -63,13 +62,41 @@ async function setupDatabase() {
     )
   `);
 
-  const storeCheck = await db.query(`SELECT COUNT(*)::int AS total FROM delivery.stores`);
+  // =========================
+  // MIGRAÇÕES AUTOMÁTICAS
+  // =========================
+
+  await db.query(`
+    ALTER TABLE delivery.stores
+    ADD COLUMN IF NOT EXISTS slug VARCHAR(80)
+  `);
+
+  await db.query(`
+    ALTER TABLE delivery.menu_items
+    ADD COLUMN IF NOT EXISTS store_id INTEGER
+  `);
+
+  await db.query(`
+    ALTER TABLE delivery.orders
+    ADD COLUMN IF NOT EXISTS store_id INTEGER
+  `);
+
+  // =========================
+  // GARANTIR LOJAS
+  // =========================
+
+  const storeCheck = await db.query(`
+    SELECT COUNT(*)::int AS total
+    FROM delivery.stores
+  `);
+
   if (storeCheck.rows[0].total === 0) {
     await db.query(`
       INSERT INTO delivery.stores
-      (name, whatsapp, address, bairro, referencia, delivery_fee, is_open)
+      (slug, name, whatsapp, address, bairro, referencia, delivery_fee, is_open)
       VALUES
       (
+        'marmitas',
         'Marmitas da Casa',
         '5563999999999',
         'Rua das Flores, 123',
@@ -77,17 +104,66 @@ async function setupDatabase() {
         'Perto da farmácia',
         5.00,
         true
+      ),
+      (
+        'sorvetes',
+        'Sorvetes Carmelo',
+        '5563999999999',
+        'Rua Gelada, 456',
+        'Centro',
+        'Em frente à praça',
+        3.00,
+        true
       )
     `);
   }
 
-  const menuCheck = await db.query(`SELECT COUNT(*)::int AS total FROM delivery.menu_items`);
+  await db.query(`
+    UPDATE delivery.stores
+    SET slug = 'marmitas'
+    WHERE id = 1 AND (slug IS NULL OR slug = '')
+  `);
+
+  const sorvetesCheck = await db.query(`
+    SELECT COUNT(*)::int AS total
+    FROM delivery.stores
+    WHERE slug = 'sorvetes'
+  `);
+
+  if (sorvetesCheck.rows[0].total === 0) {
+    await db.query(`
+      INSERT INTO delivery.stores
+      (slug, name, whatsapp, address, bairro, referencia, delivery_fee, is_open)
+      VALUES
+      (
+        'sorvetes',
+        'Sorvetes Carmelo',
+        '5563999999999',
+        'Rua Gelada, 456',
+        'Centro',
+        'Em frente à praça',
+        3.00,
+        true
+      )
+    `);
+  }
+
+  // =========================
+  // GARANTIR CARDÁPIO DAS MARMITAS
+  // =========================
+
+  const menuCheck = await db.query(`
+    SELECT COUNT(*)::int AS total
+    FROM delivery.menu_items
+  `);
+
   if (menuCheck.rows[0].total === 0) {
     await db.query(`
       INSERT INTO delivery.menu_items
-      (code, name, price, base_items, feijoes, acompanhamentos_max, acompanhamentos, carne_modo, carne_texto, carnes_opcoes, carnes_qtd, detalhes, available)
+      (store_id, code, name, price, base_items, feijoes, acompanhamentos_max, acompanhamentos, carne_modo, carne_texto, carnes_opcoes, carnes_qtd, detalhes, available)
       VALUES
       (
+        1,
         'casa-mista',
         'Marmita da Casa Mista',
         20.00,
@@ -103,6 +179,7 @@ async function setupDatabase() {
         true
       ),
       (
+        1,
         'carne-assada',
         'Marmita Carne Assada',
         22.00,
@@ -118,6 +195,7 @@ async function setupDatabase() {
         true
       ),
       (
+        1,
         'carreteiro-mista',
         'Arroz Carreteiro (Mista)',
         23.00,
@@ -133,6 +211,7 @@ async function setupDatabase() {
         true
       ),
       (
+        1,
         'carreteiro-so-carne',
         'Arroz Carreteiro (Só Carne)',
         25.00,
@@ -148,6 +227,7 @@ async function setupDatabase() {
         true
       ),
       (
+        1,
         'especial',
         'Marmita Especial',
         30.00,
@@ -164,6 +244,12 @@ async function setupDatabase() {
       )
     `);
   }
+
+  await db.query(`
+    UPDATE delivery.menu_items
+    SET store_id = 1
+    WHERE store_id IS NULL
+  `);
 
   console.log("Banco delivery verificado com sucesso.");
 }
