@@ -5,20 +5,22 @@ async function setupDatabase() {
 
   await db.query(`
     CREATE TABLE IF NOT EXISTS delivery.stores (
-      id SERIAL PRIMARY KEY,
-      name VARCHAR(150) NOT NULL,
-      whatsapp VARCHAR(30),
-      address TEXT,
-      bairro VARCHAR(100),
-      referencia TEXT,
-      delivery_fee NUMERIC(10,2) DEFAULT 0,
-      is_open BOOLEAN DEFAULT true
-    )
+  id SERIAL PRIMARY KEY,
+  slug VARCHAR(80) UNIQUE,
+  name VARCHAR(150) NOT NULL,
+  whatsapp VARCHAR(30),
+  address TEXT,
+  bairro VARCHAR(100),
+  referencia TEXT,
+  delivery_fee NUMERIC(10,2) DEFAULT 0,
+  is_open BOOLEAN DEFAULT true
+)
   `);
 
   await db.query(`
     CREATE TABLE IF NOT EXISTS delivery.menu_items (
       id SERIAL PRIMARY KEY,
+      store_id INTEGER REFERENCES delivery.stores(id) ON DELETE CASCADE,
       code VARCHAR(60) UNIQUE NOT NULL,
       name VARCHAR(150) NOT NULL,
       price NUMERIC(10,2) NOT NULL,
