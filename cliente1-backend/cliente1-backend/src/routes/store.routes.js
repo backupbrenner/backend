@@ -6,7 +6,7 @@ router.get("/", async (req, res) => {
   try {
     const result = await db.query(`
       SELECT id, name, whatsapp, address, bairro, referencia, delivery_fee, is_open
-      FROM marmitas.stores
+      FROM delivery.stores
       ORDER BY id
       LIMIT 1
     `);
