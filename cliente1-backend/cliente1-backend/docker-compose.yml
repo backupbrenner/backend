@@ -15,3 +15,11 @@ services:
       - DB_NAME=n8n
       - DB_USER=postgres
       - DB_PASSWORD=897f44b440db0d6c11dc
+    networks:
+      - default
+      - n8n_external
+
+networks:
+  n8n_external:
+    external: true
+    name: n8n_n8n_net
