@@ -4,12 +4,14 @@ const db = require("../db");
 
 router.get("/", async (req, res) => {
   try {
+    const slug = req.query.slug || "marmitas";
+
     const result = await db.query(`
-      SELECT id, name, whatsapp, address, bairro, referencia, delivery_fee, is_open
+      SELECT id, slug, name, whatsapp, address, bairro, referencia, delivery_fee, is_open
       FROM delivery.stores
-      ORDER BY id
+      WHERE slug = $1
       LIMIT 1
-    `);
+    `, [slug]);
 
     if (result.rows.length === 0) {
       return res.status(404).json({ error: "Loja não encontrada" });
