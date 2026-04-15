@@ -45,14 +45,35 @@ router.post("/", async (req, res) => {
     res.status(500).json({ error: "Erro ao salvar pedido" });
   }
 });
+
 router.get("/", async (req, res) => {
   try {
-    const result = await db.query(`
-      SELECT * FROM delivery.orders
+    const ordersResult = await db.query(`
+      SELECT *
+      FROM delivery.orders
       ORDER BY created_at DESC
     `);
 
-    res.json(result.rows);
+    const itemsResult = await db.query(`
+      SELECT *
+      FROM delivery.order_items
+      ORDER BY id ASC
+    `);
+
+    const itemsByOrder = {};
+    for (const item of itemsResult.rows) {
+      if (!itemsByOrder[item.order_id]) {
+        itemsByOrder[item.order_id] = [];
+      }
+      itemsByOrder[item.order_id].push(item);
+    }
+
+    const orders = ordersResult.rows.map(order => ({
+      ...order,
+      itens: itemsByOrder[order.id] || []
+    }));
+
+    res.json(orders);
   } catch (error) {
     console.error(error);
     res.status(500).json({ error: "Erro ao buscar pedidos" });
