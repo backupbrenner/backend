@@ -1,10 +1,10 @@
 const db = require("./db");
 
 async function setupDatabase() {
-  await db.query(`CREATE SCHEMA IF NOT EXISTS marmitas`);
+  await db.query(`CREATE SCHEMA IF NOT EXISTS delivery`);
 
   await db.query(`
-    CREATE TABLE IF NOT EXISTS marmitas.stores (
+    CREATE TABLE IF NOT EXISTS delivery.stores (
       id SERIAL PRIMARY KEY,
       name VARCHAR(150) NOT NULL,
       whatsapp VARCHAR(30),
@@ -17,7 +17,7 @@ async function setupDatabase() {
   `);
 
   await db.query(`
-    CREATE TABLE IF NOT EXISTS marmitas.menu_items (
+    CREATE TABLE IF NOT EXISTS delivery.menu_items (
       id SERIAL PRIMARY KEY,
       code VARCHAR(60) UNIQUE NOT NULL,
       name VARCHAR(150) NOT NULL,
@@ -35,10 +35,36 @@ async function setupDatabase() {
     )
   `);
 
-  const storeCheck = await db.query(`SELECT COUNT(*)::int AS total FROM marmitas.stores`);
+  await db.query(`
+    CREATE TABLE IF NOT EXISTS delivery.orders (
+      id SERIAL PRIMARY KEY,
+      cliente_nome TEXT,
+      cliente_telefone TEXT,
+      endereco TEXT,
+      bairro TEXT,
+      referencia TEXT,
+      tipo_entrega TEXT,
+      total NUMERIC(10,2),
+      status TEXT DEFAULT 'PENDENTE',
+      created_at TIMESTAMP DEFAULT NOW()
+    )
+  `);
+
+  await db.query(`
+    CREATE TABLE IF NOT EXISTS delivery.order_items (
+      id SERIAL PRIMARY KEY,
+      order_id INTEGER REFERENCES delivery.orders(id) ON DELETE CASCADE,
+      nome TEXT,
+      quantidade INTEGER,
+      preco NUMERIC(10,2),
+      observacao TEXT
+    )
+  `);
+
+  const storeCheck = await db.query(`SELECT COUNT(*)::int AS total FROM delivery.stores`);
   if (storeCheck.rows[0].total === 0) {
     await db.query(`
-      INSERT INTO marmitas.stores
+      INSERT INTO delivery.stores
       (name, whatsapp, address, bairro, referencia, delivery_fee, is_open)
       VALUES
       (
@@ -53,10 +79,10 @@ async function setupDatabase() {
     `);
   }
 
-  const menuCheck = await db.query(`SELECT COUNT(*)::int AS total FROM marmitas.menu_items`);
+  const menuCheck = await db.query(`SELECT COUNT(*)::int AS total FROM delivery.menu_items`);
   if (menuCheck.rows[0].total === 0) {
     await db.query(`
-      INSERT INTO marmitas.menu_items
+      INSERT INTO delivery.menu_items
       (code, name, price, base_items, feijoes, acompanhamentos_max, acompanhamentos, carne_modo, carne_texto, carnes_opcoes, carnes_qtd, detalhes, available)
       VALUES
       (
@@ -137,7 +163,7 @@ async function setupDatabase() {
     `);
   }
 
-  console.log("Banco das marmitas verificado com sucesso.");
+  console.log("Banco delivery verificado com sucesso.");
 }
 
 module.exports = setupDatabase;
