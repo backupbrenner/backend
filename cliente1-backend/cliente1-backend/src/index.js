@@ -1,3 +1,4 @@
+const orderRoutes = require("./routes/order.routes");
 require("dotenv").config();
 const express = require("express");
 const cors = require("cors");
@@ -17,6 +18,7 @@ app.get("/api/health", (req, res) => {
 
 app.use("/api/store", storeRoutes);
 app.use("/api/menu", menuRoutes);
+app.use("/api/orders", orderRoutes);
 
 const PORT = process.env.PORT || 3001;
 
