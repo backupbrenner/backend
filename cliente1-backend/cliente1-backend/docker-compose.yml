@@ -1,11 +1,12 @@
 version: "3.8"
 
 services:
-  backend:
+  cliente1-backend:
     build: .
     container_name: cliente1-backend
-    restart: always
+    restart: unless-stopped
     ports:
       - "3001:3001"
     environment:
       - NODE_ENV=production
+      - PORT=3001
