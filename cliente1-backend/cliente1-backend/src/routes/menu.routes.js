@@ -4,26 +4,31 @@ const db = require("../db");
 
 router.get("/", async (req, res) => {
   try {
+    const slug = req.query.slug || "marmitas";
+
     const result = await db.query(`
       SELECT
-        id,
-        code,
-        name,
-        price,
-        base_items,
-        feijoes,
-        acompanhamentos_max,
-        acompanhamentos,
-        carne_modo,
-        carne_texto,
-        carnes_opcoes,
-        carnes_qtd,
-        detalhes,
-        available
-      FROM delivery.menu_items
-      WHERE available = true
-      ORDER BY id
-    `);
+        mi.id,
+        mi.store_id,
+        mi.code,
+        mi.name,
+        mi.price,
+        mi.base_items,
+        mi.feijoes,
+        mi.acompanhamentos_max,
+        mi.acompanhamentos,
+        mi.carne_modo,
+        mi.carne_texto,
+        mi.carnes_opcoes,
+        mi.carnes_qtd,
+        mi.detalhes,
+        mi.available
+      FROM delivery.menu_items mi
+      JOIN delivery.stores s ON s.id = mi.store_id
+      WHERE mi.available = true
+        AND s.slug = $1
+      ORDER BY mi.id
+    `, [slug]);
 
     res.json(result.rows);
   } catch (error) {
