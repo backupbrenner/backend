@@ -1,0 +1,49 @@
+const express = require("express");
+const router = express.Router();
+const db = require("../db");
+
+router.post("/", async (req, res) => {
+  try {
+    const { cliente, itens, tipoEntrega, total } = req.body;
+
+    const orderResult = await db.query(
+      `INSERT INTO delivery.orders
+      (cliente_nome, cliente_telefone, endereco, bairro, referencia, tipo_entrega, total)
+      VALUES ($1,$2,$3,$4,$5,$6,$7)
+      RETURNING id`,
+      [
+        cliente.nome,
+        cliente.telefone,
+        cliente.endereco,
+        cliente.bairro,
+        cliente.referencia,
+        tipoEntrega,
+        total
+      ]
+    );
+
+    const orderId = orderResult.rows[0].id;
+
+    for (const item of itens) {
+      await db.query(
+        `INSERT INTO delivery.order_items
+        (order_id, nome, quantidade, preco, observacao)
+        VALUES ($1,$2,$3,$4,$5)`,
+        [
+          orderId,
+          item.nome,
+          item.quantidade,
+          item.preco,
+          item.observacao || ""
+        ]
+      );
+    }
+
+    res.json({ success: true, orderId });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: "Erro ao salvar pedido" });
+  }
+});
+
+module.exports = router;
