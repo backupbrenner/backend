@@ -20,7 +20,7 @@ router.get("/", async (req, res) => {
         carnes_qtd,
         detalhes,
         available
-      FROM marmitas.menu_items
+      FROM delivery.menu_items
       WHERE available = true
       ORDER BY id
     `);
