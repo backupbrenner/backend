@@ -4,22 +4,23 @@ const db = require("../db");
 
 router.post("/", async (req, res) => {
   try {
-    const { cliente, itens, tipoEntrega, total } = req.body;
+    const { store_id, cliente, itens, tipoEntrega, total } = req.body;
 
     const orderResult = await db.query(
       `INSERT INTO delivery.orders
-      (cliente_nome, cliente_telefone, endereco, bairro, referencia, tipo_entrega, total)
-      VALUES ($1,$2,$3,$4,$5,$6,$7)
-      RETURNING id`,
+      (store_id, cliente_nome, cliente_telefone, endereco, bairro, referencia, tipo_entrega, total)
+      VALUES ($1,$2,$3,$4,$5,$6,$7,$8)
+      RETURNING id`
       [
-        cliente.nome,
-        cliente.telefone,
-        cliente.endereco,
-        cliente.bairro,
-        cliente.referencia,
-        tipoEntrega,
-        total
-      ]
+  store_id,
+  cliente.nome,
+  cliente.telefone,
+  cliente.endereco,
+  cliente.bairro,
+  cliente.referencia,
+  tipoEntrega,
+  total
+]
     );
 
     const orderId = orderResult.rows[0].id;
