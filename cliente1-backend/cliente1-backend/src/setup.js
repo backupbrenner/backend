@@ -245,11 +245,12 @@ async function setupDatabase() {
     `);
   }
 
-  await db.query(`
+    await db.query(`
     UPDATE delivery.menu_items
     SET store_id = 1
     WHERE store_id IS NULL
   `);
+
   const sorveteMenuCheck = await db.query(`
     SELECT COUNT(*)::int AS total
     FROM delivery.menu_items
@@ -328,84 +329,9 @@ async function setupDatabase() {
     `);
   }
 
-    const sorveteMenuCheck = await db.query(`
-    SELECT COUNT(*)::int AS total
-    FROM delivery.menu_items
-    WHERE store_id = 2
-  `);
-
-  if (sorveteMenuCheck.rows[0].total === 0) {
-    await db.query(`
-      INSERT INTO delivery.menu_items
-      (store_id, code, name, price, base_items, feijoes, acompanhamentos_max, acompanhamentos, carne_modo, carne_texto, carnes_opcoes, carnes_qtd, detalhes, available)
-      VALUES
-      (
-        2,
-        'sorvete-1l-morango',
-        'Sorvete 1L Morango',
-        25.00,
-        ARRAY[]::TEXT[],
-        ARRAY[]::TEXT[],
-        0,
-        ARRAY[]::TEXT[],
-        'fixa',
-        'Morango',
-        NULL,
-        NULL,
-        'Sorvete de morango 1 litro',
-        true
-      ),
-      (
-        2,
-        'sorvete-1l-chocolate',
-        'Sorvete 1L Chocolate',
-        25.00,
-        ARRAY[]::TEXT[],
-        ARRAY[]::TEXT[],
-        0,
-        ARRAY[]::TEXT[],
-        'fixa',
-        'Chocolate',
-        NULL,
-        NULL,
-        'Sorvete de chocolate 1 litro',
-        true
-      ),
-      (
-        2,
-        'sorvete-2l-misto',
-        'Sorvete 2L Misto',
-        40.00,
-        ARRAY[]::TEXT[],
-        ARRAY[]::TEXT[],
-        0,
-        ARRAY[]::TEXT[],
-        'fixa',
-        'Sabores mistos',
-        NULL,
-        NULL,
-        'Sorvete 2 litros com sabores mistos',
-        true
-      ),
-      (
-        2,
-        'picole-morango',
-        'Picolé Morango',
-        6.00,
-        ARRAY[]::TEXT[],
-        ARRAY[]::TEXT[],
-        0,
-        ARRAY[]::TEXT[],
-        'fixa',
-        'Morango',
-        NULL,
-        NULL,
-        'Picolé sabor morango',
-        true
-      )
-    `);
-  }
   console.log("Banco delivery verificado com sucesso.");
 }
 
 module.exports = setupDatabase;
+
+
